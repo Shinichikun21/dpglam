@@ -1,68 +1,96 @@
 const express = require('express');
 const router = express.Router();
-const CustomerPurchase = require('../models/customerPurchase');
+const CustomerPurchase = require('../models/CustomerPurchase'); // Import your model
 
-// Create a new customer purchase
-router.post('/customerPurchases', async (req, res) => {
+//Create a new purchase
+router.post('/purchases', async (req, res) => {
   try {
-    const newCustomerPurchase = new CustomerPurchase(req.body);
-    const savedPurchase = await newCustomerPurchase.save();
+    const { userID, totalAmount, paymentStatus, shippingAddress } = req.body; 
+
+    const newPurchase = new CustomerPurchase({ 
+      userID, 
+      totalAmount, 
+      paymentStatus, 
+      shippingAddress 
+    });
+
+    const savedPurchase = await newPurchase.save(); 
+
     res.status(201).json(savedPurchase); 
   } catch (error) {
-    res.status(400).json({ message: error.message }); 
+    console.error(error);
+    res.status(500).json({ message: 'Error creating purchase' });
   }
 });
 
-// Get all customer purchases
-router.get('/customerPurchases', async (req, res) => {
+//Retrieve all purchases
+router.get('/purchases', async (req, res) => {
   try {
-    const customerPurchases = await CustomerPurchase.find();
-    res.json(customerPurchases);
+    const purchases = await CustomerPurchase.find(); 
+    res.json(purchases); 
   } catch (error) {
-    res.status(500).json({ message: error.message }); 
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching purchases' });
   }
 });
 
-// Get a specific customer purchase by ID
-router.get('/customerPurchases/:id', async (req, res) => {
+//Get a single purchase by ID
+router.get('/purchases/:id', async (req, res) => {
   try {
-    const customerPurchase = await CustomerPurchase.findById(req.params.id);
-    if (!customerPurchase) {
-      return res.status(404).json({ message: 'Customer Purchase not found' });
+    const purchase = await CustomerPurchase.findById(req.params.id); 
+
+    if (!purchase) {
+      return res.status(404).json({ message: 'Purchase not found' });
     }
-    res.json(customerPurchase);
+
+    res.json(purchase); 
   } catch (error) {
-    res.status(500).json({ message: error.message }); 
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching purchase' });
   }
 });
 
-// Update
-router.put('/customerPurchases/:id', async (req, res) => {
+//Update a purchase by ID
+router.put('/purchases/:id', async (req, res) => {
   try {
+    const { userID, totalAmount, paymentStatus, shippingAddress, orderStatus } = req.body;
+
     const updatedPurchase = await CustomerPurchase.findByIdAndUpdate(
       req.params.id, 
-      req.body, 
-      { new: true } 
+      { 
+        userID, 
+        totalAmount, 
+        paymentStatus, 
+        shippingAddress, 
+        orderStatus 
+      }, 
+      { new: true } // Return the updated document
     );
+
     if (!updatedPurchase) {
-      return res.status(404).json({ message: 'Customer Purchase not found' });
+      return res.status(404).json({ message: 'Purchase not found' });
     }
-    res.json(updatedPurchase);
+
+    res.json(updatedPurchase); 
   } catch (error) {
-    res.status(400).json({ message: error.message }); 
+    console.error(error);
+    res.status(500).json({ message: 'Error updating purchase' });
   }
 });
 
-//Delete
-router.delete('/customerPurchases/:id', async (req, res) => {
+//Delete a purchase by ID
+router.delete('/purchases/:id', async (req, res) => {
   try {
-    const deletedPurchase = await CustomerPurchase.findByIdAndDelete(req.params.id);
+    const deletedPurchase = await CustomerPurchase.findByIdAndDelete(req.params.id); 
+
     if (!deletedPurchase) {
-      return res.status(404).json({ message: 'Customer Purchase not found' });
+      return res.status(404).json({ message: 'Purchase not found' });
     }
-    res.json({ message: 'Customer Purchase deleted successfully' });
+
+    res.json({ message: 'Purchase deleted successfully' }); 
   } catch (error) {
-    res.status(500).json({ message: error.message }); 
+    console.error(error);
+    res.status(500).json({ message: 'Error deleting purchase' });
   }
 });
 
